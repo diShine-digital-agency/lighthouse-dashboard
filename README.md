@@ -1,17 +1,14 @@
-# Lighthouse Dashboard
+# lighthouse-dashboard
 
-**Self-hosted Lighthouse audit dashboard with scheduled monitoring and trend charts.**
+**Self-hosted Lighthouse monitoring with trend charts and scheduled audits.**
 
-Built by [diShine](https://dishine.it) -- a creative tech agency specializing in web performance, automation, and digital strategy.
+Running Lighthouse once is easy. Remembering to run it every week, tracking whether scores are improving or getting worse, and sharing results with your team -- that's the annoying part. This tool runs Lighthouse audits on a schedule, stores the results in a local SQLite database, and serves a web dashboard where you can see performance, accessibility, best practices, and SEO scores over time.
+
+It's meant for teams and freelancers who want ongoing visibility into site performance without paying for a SaaS tool or setting up a complex monitoring stack. You install it, point it at your URLs, and it just runs.
+
+Built by [diShine](https://dishine.it)
 
 ---
-
-## What it does
-
-- Runs Google Lighthouse audits on any URL and stores results in a local SQLite database
-- Displays performance, accessibility, best practices, and SEO scores in a clean web dashboard
-- Tracks score trends over time with interactive charts
-- Automates audits on a configurable schedule (default: every 24 hours)
 
 ## Quick start
 
@@ -28,42 +25,60 @@ npx lighthouse-dashboard start
 # Open http://localhost:3000
 ```
 
+---
+
+## What you get
+
+- **Scheduled audits**: configurable interval (default: every 24 hours), runs automatically in the background
+- **Score tracking**: performance, accessibility, best practices, and SEO scores stored in SQLite
+- **Trend charts**: interactive charts showing how scores change over time -- useful for proving that your optimization work is actually working
+- **Web dashboard**: clean UI at localhost, no build step needed
+- **REST API**: add URLs, trigger audits, pull data -- everything the dashboard does is available via API
+
+---
+
 ## CLI commands
 
-| Command | Description |
-|---------|-------------|
-| `start` | Start the dashboard server |
-| `run <url>` | Run a single Lighthouse audit and print results |
-| `add <url> [name]` | Add a URL to scheduled monitoring |
-| `list` | List all monitored URLs |
-| `remove <id>` | Remove a URL by its ID |
-| `--help` | Show usage information |
-| `--version` | Show version number |
+| Command | What it does |
+|---------|--------------|
+| `start` | start the dashboard server |
+| `run <url>` | run a single Lighthouse audit and print results |
+| `add <url> [name]` | add a URL to scheduled monitoring |
+| `list` | list all monitored URLs |
+| `remove <id>` | remove a URL by its ID |
+| `--help` | show usage information |
+| `--version` | show version number |
 
 ### Start options
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--port` | 3000 | Server port |
-| `--db` | ./lighthouse.db | Path to SQLite database file |
-| `--interval` | 86400 | Audit interval in seconds (default: 24h) |
+| `--port` | 3000 | server port |
+| `--db` | ./lighthouse.db | path to SQLite database file |
+| `--interval` | 86400 | audit interval in seconds (default is 24h) |
+
+---
 
 ## API endpoints
 
+If you want to integrate with other tools or build your own frontend, everything's available over HTTP:
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/urls` | List all URLs with latest audit data |
-| POST | `/api/urls` | Add a URL (`{ url, name }`) |
-| DELETE | `/api/urls/:id` | Remove a URL and its audits |
-| GET | `/api/urls/:id/audits` | Get audit history (query: `limit`) |
-| GET | `/api/urls/:id/trend` | Get trend data (query: `days`) |
-| POST | `/api/urls/:id/run` | Trigger an audit now |
-| GET | `/api/stats` | Dashboard statistics |
-| GET | `/api/health` | Health check |
+| GET | `/api/urls` | list all URLs with latest audit data |
+| POST | `/api/urls` | add a URL (`{ url, name }`) |
+| DELETE | `/api/urls/:id` | remove a URL and its audits |
+| GET | `/api/urls/:id/audits` | get audit history (query: `limit`) |
+| GET | `/api/urls/:id/trend` | get trend data (query: `days`) |
+| POST | `/api/urls/:id/run` | trigger an audit now |
+| GET | `/api/stats` | dashboard statistics |
+| GET | `/api/health` | health check |
+
+---
 
 ## Configuration
 
-All configuration is done via CLI flags or programmatic options:
+All configuration is through CLI flags or programmatic options -- no config files to manage:
 
 ```javascript
 import { createServer } from '@dishine/lighthouse-dashboard';
@@ -74,6 +89,8 @@ const { app, server, db, scheduler } = createServer({
   interval: 3600000, // 1 hour in milliseconds
 });
 ```
+
+---
 
 ## Programmatic usage
 
@@ -98,9 +115,11 @@ db.saveAudit(1, {
 });
 ```
 
+---
+
 ## Self-hosting tips
 
-### Using pm2
+### With pm2
 
 ```bash
 pm2 start npx --name lighthouse-dashboard -- lighthouse-dashboard start --port 3000
@@ -108,7 +127,7 @@ pm2 save
 pm2 startup
 ```
 
-### Using systemd
+### With systemd
 
 ```ini
 [Unit]
@@ -126,12 +145,20 @@ Restart=on-failure
 WantedBy=multi-user.target
 ```
 
-## Requirements
-
-- Node.js >= 18
-- Google Chrome or Chromium (for Lighthouse)
-- lighthouse >= 12.0.0 (peer dependency)
+Either way, the SQLite database is just a single file, so backups are trivial -- just copy it.
 
 ---
 
-Built with care by [diShine](https://dishine.it) | MIT License
+## Requirements
+
+- **Node.js** 18 or later
+- **Google Chrome or Chromium** (Lighthouse needs it)
+- **lighthouse** >= 12.0.0 (peer dependency)
+
+---
+
+## License
+
+MIT License -- see [LICENSE](LICENSE) for details.
+
+Copyright (c) 2026 [diShine](https://dishine.it)
