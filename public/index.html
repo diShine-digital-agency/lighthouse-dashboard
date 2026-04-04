@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lighthouse Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>Lighthouse Dashboard</h1>
+      <span class="byline">by <a href="https://dishine.it" target="_blank">diShine</a></span>
+    </div>
+  </header>
+
+  <main>
+    <section class="add-url">
+      <form id="add-form">
+        <input type="url" id="input-url" placeholder="https://example.com" required>
+        <input type="text" id="input-name" placeholder="Site name (optional)">
+        <button type="submit">Add URL</button>
+      </form>
+    </section>
+
+    <section id="cards" class="cards-grid"></section>
+
+    <section id="trend-section" class="trend-section" style="display:none;">
+      <div class="trend-header">
+        <h2 id="trend-title">Trend</h2>
+        <button id="trend-close" class="btn-close" title="Close">&times;</button>
+      </div>
+      <canvas id="trend-chart"></canvas>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
