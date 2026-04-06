@@ -1,19 +1,19 @@
-# Lighthouse Dashboard -- User Guide
+# Lighthouse Dashboard — User Guide
 
-A complete guide to setting up and using the Lighthouse Dashboard for website performance monitoring.
+A guide to setting up and using the Lighthouse Dashboard for website performance monitoring.
 
 ---
 
-## 1. What is this tool?
+## 1. What this tool does
 
-Lighthouse Dashboard is a self-hosted web application that monitors the performance of your websites over time. It uses Google Lighthouse (the same technology behind Chrome DevTools audits) to score your pages on four categories:
+Lighthouse Dashboard is a self-hosted web application that monitors website performance over time. It uses Google Lighthouse (the same engine behind Chrome DevTools audits) to score pages on four categories:
 
-- **Performance** -- How fast your page loads and becomes interactive
-- **Accessibility** -- How usable your site is for people with disabilities
-- **Best Practices** -- Whether your site follows modern web standards
-- **SEO** -- How well search engines can crawl and index your content
+- **Performance** — how fast the page loads and becomes interactive
+- **Accessibility** — how usable the site is for people with disabilities
+- **Best Practices** — whether the site follows modern web standards
+- **SEO** — how well search engines can crawl and index the content
 
-Each category is scored from 0 to 100. The dashboard stores every audit result and shows you how your scores change over time.
+Each category is scored from 0 to 100. The dashboard stores every audit result and shows how scores change over time.
 
 ---
 
@@ -23,8 +23,8 @@ Each category is scored from 0 to 100. The dashboard stores every audit result a
 
 You need two things installed on your computer:
 
-1. **Node.js** (version 18 or higher) -- Download from https://nodejs.org
-2. **Google Chrome** or **Chromium** -- Lighthouse needs a browser to run audits
+1. **Node.js** (version 18 or higher) — download from https://nodejs.org
+2. **Google Chrome** or **Chromium** — Lighthouse needs a browser to run audits
 
 ### Install the dashboard
 
@@ -34,10 +34,10 @@ Open your terminal (Terminal on Mac, Command Prompt or PowerShell on Windows) an
 npm install @dishine/lighthouse-dashboard
 ```
 
-Then install Lighthouse globally:
+Then install Lighthouse:
 
 ```bash
-npm install -g lighthouse
+npm install lighthouse
 ```
 
 To verify everything is installed:
@@ -108,9 +108,9 @@ Each score uses a color-coded system:
 
 | Score | Color | Meaning |
 |-------|-------|---------|
-| 90-100 | Green | Good -- your site performs well in this area |
-| 50-89 | Orange | Needs improvement -- there are things to fix |
-| 0-49 | Red | Poor -- significant issues need attention |
+| 90-100 | Green | Good — your site performs well in this area |
+| 50-89 | Orange | Needs improvement — there are things to fix |
+| 0-49 | Red | Poor — significant issues need attention |
 
 ### What each category means
 
@@ -150,7 +150,7 @@ npx lighthouse-dashboard start --interval 3600
 
 The first audit runs immediately when the server starts, then repeats on the configured interval.
 
-Audit results appear in the dashboard automatically -- no need to refresh.
+Audit results appear in the dashboard automatically — no need to refresh.
 
 ---
 
@@ -294,10 +294,10 @@ server {
 
 ### "Lighthouse is not installed"
 
-Make sure you installed Lighthouse globally:
+Make sure Lighthouse is installed:
 
 ```bash
-npm install -g lighthouse
+npm install lighthouse
 ```
 
 ### "Chrome not found" or headless browser errors
@@ -348,4 +348,4 @@ A: Lighthouse simulates a mobile device by default. The scores reflect mobile pe
 
 ---
 
-Built by [diShine](https://dishine.it) -- Creative Tech Agency
+Built by [diShine](https://dishine.it)

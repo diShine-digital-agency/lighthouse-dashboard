@@ -2,7 +2,7 @@
 
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { dirname, join, resolve } from 'path';
+import { dirname, join } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -28,13 +28,22 @@ function getFlag(name, fallback) {
   return args[idx + 1] ?? fallback;
 }
 
+function isValidUrl(str) {
+  try {
+    const url = new URL(str);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 const args = process.argv.slice(2);
 const command = args[0];
 
 function printUsage() {
   console.log(`
-${c.bold}${c.cyan}Lighthouse Dashboard${c.reset} ${c.dim}v${pkg.version}${c.reset}
-${c.dim}by diShine (https://dishine.it)${c.reset}
+${c.bold}${c.cyan}lighthouse-dashboard${c.reset} ${c.dim}v${pkg.version}${c.reset}
+${c.dim}Self-hosted Lighthouse audit dashboard${c.reset}
 
 ${c.bold}Usage:${c.reset}
   lighthouse-dashboard ${c.green}<command>${c.reset} [options]
@@ -52,8 +61,10 @@ ${c.bold}Options (start):${c.reset}
   --interval <secs>   Audit interval in seconds (default: 86400)
 
 ${c.bold}Global:${c.reset}
-  --help              Show this help message
-  --version           Show version
+  --help, -h          Show this help message
+  --version, -v       Show version
+
+${c.dim}Docs: https://github.com/diShine-digital-agency/lighthouse-dashboard${c.reset}
 `);
 }
 
@@ -70,17 +81,26 @@ async function main() {
 
   if (command === 'start') {
     const port = parseInt(getFlag('--port', '3000'), 10);
+    if (isNaN(port) || port < 1 || port > 65535) {
+      console.error(`${c.red}Error: Port must be a number between 1 and 65535.${c.reset}`);
+      process.exit(1);
+    }
     const dbPath = getFlag('--db', './lighthouse.db');
     const intervalSecs = parseInt(getFlag('--interval', '86400'), 10);
+    if (isNaN(intervalSecs) || intervalSecs < 1) {
+      console.error(`${c.red}Error: Interval must be a positive number of seconds.${c.reset}`);
+      process.exit(1);
+    }
 
     const { createServer } = await import('../src/server.js');
     createServer({ port, dbPath, interval: intervalSecs * 1000 });
 
     console.log(`
-${c.bold}${c.cyan}Lighthouse Dashboard${c.reset} ${c.dim}v${pkg.version}${c.reset}
+${c.bold}${c.cyan}lighthouse-dashboard${c.reset} ${c.dim}v${pkg.version}${c.reset}
 ${c.green}Dashboard running at http://localhost:${port}${c.reset}
 ${c.dim}Database: ${dbPath}${c.reset}
 ${c.dim}Audit interval: ${intervalSecs}s${c.reset}
+${c.dim}Press Ctrl+C to stop${c.reset}
 `);
     return;
   }
@@ -88,11 +108,15 @@ ${c.dim}Audit interval: ${intervalSecs}s${c.reset}
   if (command === 'run') {
     const url = args[1];
     if (!url) {
-      console.error(`${c.red}Error: URL is required. Usage: lighthouse-dashboard run <url>${c.reset}`);
+      console.error(`${c.red}Error: URL is required.${c.reset}\nUsage: lighthouse-dashboard run <url>`);
+      process.exit(1);
+    }
+    if (!isValidUrl(url)) {
+      console.error(`${c.red}Error: Invalid URL. Must start with http:// or https://${c.reset}`);
       process.exit(1);
     }
 
-    console.log(`${c.dim}Running audit for ${url}...${c.reset}`);
+    console.log(`${c.dim}Running audit for ${url}…${c.reset}`);
     const { runAudit } = await import('../src/runner.js');
 
     try {
@@ -122,7 +146,11 @@ ${'─'.repeat(50)}
   if (command === 'add') {
     const url = args[1];
     if (!url) {
-      console.error(`${c.red}Error: URL is required. Usage: lighthouse-dashboard add <url> [name]${c.reset}`);
+      console.error(`${c.red}Error: URL is required.${c.reset}\nUsage: lighthouse-dashboard add <url> [name]`);
+      process.exit(1);
+    }
+    if (!isValidUrl(url)) {
+      console.error(`${c.red}Error: Invalid URL. Must start with http:// or https://${c.reset}`);
       process.exit(1);
     }
     const name = args[2] || null;
@@ -170,7 +198,7 @@ ${'─'.repeat(50)}
   if (command === 'remove') {
     const id = parseInt(args[1], 10);
     if (isNaN(id)) {
-      console.error(`${c.red}Error: Valid ID is required. Usage: lighthouse-dashboard remove <id>${c.reset}`);
+      console.error(`${c.red}Error: Valid numeric ID is required.${c.reset}\nUsage: lighthouse-dashboard remove <id>`);
       process.exit(1);
     }
     const dbPath = getFlag('--db', './lighthouse.db');

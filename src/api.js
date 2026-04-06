@@ -1,7 +1,17 @@
 import { Router } from 'express';
 
+function isValidUrl(str) {
+  try {
+    const url = new URL(str);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 export function createRouter(db, runAuditFn) {
   const router = Router();
+  const runningAudits = new Set();
 
   // List all URLs with latest audit
   router.get('/api/urls', (req, res) => {
@@ -22,6 +32,8 @@ export function createRouter(db, runAuditFn) {
     try {
       const { url, name } = req.body;
       if (!url) return res.status(400).json({ error: 'url is required' });
+      if (!isValidUrl(url)) return res.status(400).json({ error: 'Invalid URL. Must start with http:// or https://' });
+      if (name && name.length > 100) return res.status(400).json({ error: 'Name must be 100 characters or fewer' });
       const entry = db.addUrl(url, name);
       res.status(201).json(entry);
     } catch (err) {
@@ -36,6 +48,7 @@ export function createRouter(db, runAuditFn) {
   router.delete('/api/urls/:id', (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
       db.removeUrl(id);
       res.json({ ok: true });
     } catch (err) {
@@ -47,7 +60,8 @@ export function createRouter(db, runAuditFn) {
   router.get('/api/urls/:id/audits', (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const limit = parseInt(req.query.limit, 10) || 50;
+      if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
+      const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 500);
       const audits = db.getAudits(id, limit);
       res.json(audits);
     } catch (err) {
@@ -59,7 +73,8 @@ export function createRouter(db, runAuditFn) {
   router.get('/api/urls/:id/trend', (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const days = parseInt(req.query.days, 10) || 30;
+      if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
+      const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 365);
       const trend = db.getTrend(id, days);
       res.json(trend);
     } catch (err) {
@@ -71,23 +86,33 @@ export function createRouter(db, runAuditFn) {
   router.post('/api/urls/:id/run', async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
       const urlEntry = db.getUrl(id);
       if (!urlEntry) return res.status(404).json({ error: 'URL not found' });
 
-      const result = await runAuditFn(urlEntry.url);
-      const saved = db.saveAudit(id, {
-        performance: result.performance,
-        accessibility: result.accessibility,
-        bestPractices: result.bestPractices,
-        seo: result.seo,
-        fcp: result.metrics.fcp,
-        lcp: result.metrics.lcp,
-        cls: result.metrics.cls,
-        tbt: result.metrics.tbt,
-        si: result.metrics.si,
-        tti: result.metrics.tti,
-      });
-      res.json(saved);
+      if (runningAudits.has(id)) {
+        return res.status(429).json({ error: 'Audit already in progress for this URL' });
+      }
+
+      runningAudits.add(id);
+      try {
+        const result = await runAuditFn(urlEntry.url);
+        const saved = db.saveAudit(id, {
+          performance: result.performance,
+          accessibility: result.accessibility,
+          bestPractices: result.bestPractices,
+          seo: result.seo,
+          fcp: result.metrics.fcp,
+          lcp: result.metrics.lcp,
+          cls: result.metrics.cls,
+          tbt: result.metrics.tbt,
+          si: result.metrics.si,
+          tti: result.metrics.tti,
+        });
+        res.json(saved);
+      } finally {
+        runningAudits.delete(id);
+      }
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

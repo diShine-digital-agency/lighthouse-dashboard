@@ -44,12 +44,27 @@ export function createServer(options = {}) {
           si: result.metrics.si,
           tti: result.metrics.tti,
         });
-        console.log(`[audit] ${entry.url} - Performance: ${result.performance}`);
+        console.log(`[audit] ${entry.url} — Performance: ${result.performance}`);
       } catch (err) {
         console.error(`[audit] Failed for ${entry.url}: ${err.message}`);
       }
     }
   });
+
+  function shutdown() {
+    console.log('\n[server] Shutting down…');
+    scheduler.stop();
+    server.close(() => {
+      db.close();
+      console.log('[server] Stopped.');
+      process.exit(0);
+    });
+    // Force exit after 10 seconds if server hasn't closed
+    setTimeout(() => process.exit(1), 10000).unref();
+  }
+
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 
   return { app, server, db, scheduler };
 }

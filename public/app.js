@@ -1,5 +1,4 @@
-/* Lighthouse Dashboard — Frontend Application
-   by diShine Digital Agency (https://dishine.it) */
+/* Lighthouse Dashboard — Frontend Application */
 
 (function () {
   'use strict';
@@ -11,10 +10,48 @@
   const trendTitle = $('#trend-title');
   const trendClose = $('#trend-close');
   const trendCanvas = $('#trend-chart');
+  const toastEl = $('#toast');
+  const themeToggle = $('#theme-toggle');
 
   let trendChart = null;
   let refreshTimer = null;
-  const REFRESH_INTERVAL = 30000; // 30 seconds
+  const REFRESH_INTERVAL = 60000; // 60 seconds
+
+  /* ── Theme ─────────────────────────────────────── */
+
+  function initTheme() {
+    const stored = localStorage.getItem('lh-theme');
+    if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  }
+
+  function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('lh-theme', 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('lh-theme', 'dark');
+    }
+  }
+
+  initTheme();
+  themeToggle.addEventListener('click', toggleTheme);
+
+  /* ── Toast notifications ───────────────────────── */
+
+  let toastTimeout = null;
+
+  function showToast(message, type) {
+    toastEl.textContent = message;
+    toastEl.className = 'toast visible' + (type ? ' toast-' + type : '');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+      toastEl.classList.remove('visible');
+    }, 3500);
+  }
 
   /* ── Helpers ───────────────────────────────────── */
 
@@ -30,16 +67,9 @@
     return d.toLocaleString();
   }
 
-  function formatMetric(val, unit) {
-    if (val == null) return 'N/A';
-    if (unit === 'ms') return Math.round(val) + ' ms';
-    if (unit === 'cls') return val.toFixed(3);
-    return val;
-  }
-
   /* ── API calls ─────────────────────────────────── */
 
-  async function api(path, opts = {}) {
+  async function api(path, opts) {
     const res = await fetch(path, {
       headers: { 'Content-Type': 'application/json' },
       ...opts,
@@ -63,29 +93,46 @@
   }
 
   async function removeUrl(id) {
-    return api(`/api/urls/${id}`, { method: 'DELETE' });
+    return api('/api/urls/' + id, { method: 'DELETE' });
   }
 
   async function triggerAudit(id) {
-    return api(`/api/urls/${id}/run`, { method: 'POST' });
+    return api('/api/urls/' + id + '/run', { method: 'POST' });
   }
 
   async function fetchTrend(id, days) {
-    return api(`/api/urls/${id}/trend?days=${days}`);
+    return api('/api/urls/' + id + '/trend?days=' + days);
+  }
+
+  async function fetchStats() {
+    return api('/api/stats');
+  }
+
+  /* ── Stats bar ─────────────────────────────────── */
+
+  async function renderStats() {
+    try {
+      const stats = await fetchStats();
+      $('#stat-urls').textContent = stats.totalUrls;
+      $('#stat-audits').textContent = stats.totalAudits;
+      $('#stat-perf').textContent = stats.avgScores?.performance ?? '—';
+      $('#stat-a11y').textContent = stats.avgScores?.accessibility ?? '—';
+    } catch {
+      // Stats are non-critical; silently ignore
+    }
   }
 
   /* ── Render score gauge ────────────────────────── */
 
   function gaugeHTML(label, score) {
-    const display = score != null ? score : '--';
+    const display = score != null ? score : '—';
     const color = score != null ? scoreColor(score) : 'var(--border)';
-    return `
-      <div class="gauge">
-        <div class="gauge-circle" style="border-color: ${color}; color: ${color}">
-          ${display}
-        </div>
-        <span class="gauge-label">${label}</span>
-      </div>`;
+    return '<div class="gauge">' +
+      '<div class="gauge-circle" style="border-color: ' + color + '; color: ' + color + '" role="meter" aria-valuenow="' + (score ?? 0) + '" aria-valuemin="0" aria-valuemax="100" aria-label="' + label + ' score">' +
+      display +
+      '</div>' +
+      '<span class="gauge-label">' + label + '</span>' +
+      '</div>';
   }
 
   /* ── Render a single URL card ──────────────────── */
@@ -96,30 +143,28 @@
 
     const card = document.createElement('div');
     card.className = 'card';
-    card.innerHTML = `
-      <div class="card-header">
-        <div>
-          <div class="card-name">${escapeHtml(name)}</div>
-          <div class="card-url">${escapeHtml(entry.url)}</div>
-        </div>
-        <div class="card-actions">
-          <button class="btn-run" title="Run audit now" data-id="${entry.id}">Run</button>
-          <button class="btn-trend" title="View trend" data-id="${entry.id}" data-name="${escapeAttr(name)}">Trend</button>
-          <button class="btn-delete" title="Remove" data-id="${entry.id}">Del</button>
-        </div>
-      </div>
-      ${a ? `
-        <div class="scores">
-          ${gaugeHTML('Perf', a.performance)}
-          ${gaugeHTML('A11y', a.accessibility)}
-          ${gaugeHTML('BP', a.best_practices)}
-          ${gaugeHTML('SEO', a.seo)}
-        </div>
-        <div class="card-time">Last audit: ${formatTime(a.created_at)}</div>
-      ` : '<div class="no-data">No audit data yet. Click "Run" to start.</div>'}
-    `;
+    card.innerHTML =
+      '<div class="card-header">' +
+        '<div>' +
+          '<div class="card-name">' + escapeHtml(name) + '</div>' +
+          '<div class="card-url">' + escapeHtml(entry.url) + '</div>' +
+        '</div>' +
+        '<div class="card-actions">' +
+          '<button class="btn-run" title="Run audit now" data-id="' + entry.id + '" aria-label="Run audit for ' + escapeAttr(name) + '">Run</button>' +
+          '<button class="btn-trend" title="View trend" data-id="' + entry.id + '" data-name="' + escapeAttr(name) + '" aria-label="View trend for ' + escapeAttr(name) + '">Trend</button>' +
+          '<button class="btn-delete" title="Remove" data-id="' + entry.id + '" aria-label="Remove ' + escapeAttr(name) + '">Del</button>' +
+        '</div>' +
+      '</div>' +
+      (a
+        ? '<div class="scores">' +
+            gaugeHTML('Perf', a.performance) +
+            gaugeHTML('A11y', a.accessibility) +
+            gaugeHTML('BP', a.best_practices) +
+            gaugeHTML('SEO', a.seo) +
+          '</div>' +
+          '<div class="card-time">Last audit: ' + formatTime(a.created_at) + '</div>'
+        : '<div class="no-data">No audit data yet. Click "Run" to start.</div>');
 
-    // Event listeners
     card.querySelector('.btn-run').addEventListener('click', handleRun);
     card.querySelector('.btn-trend').addEventListener('click', handleTrend);
     card.querySelector('.btn-delete').addEventListener('click', handleDelete);
@@ -162,15 +207,19 @@
     const id = btn.dataset.id;
     const card = btn.closest('.card');
     card.classList.add('loading');
-    btn.textContent = '...';
+    btn.textContent = '…';
+    btn.disabled = true;
     try {
       await triggerAudit(id);
+      showToast('Audit completed', 'success');
       await renderAll();
+      await renderStats();
     } catch (err) {
-      alert('Audit failed: ' + err.message);
+      showToast('Audit failed: ' + err.message, 'error');
     } finally {
       card.classList.remove('loading');
       btn.textContent = 'Run';
+      btn.disabled = false;
     }
   }
 
@@ -180,12 +229,12 @@
     try {
       const data = await fetchTrend(id, 30);
       if (data.length === 0) {
-        alert('No trend data available yet. Run at least one audit first.');
+        showToast('No trend data yet. Run at least one audit first.', 'error');
         return;
       }
       showTrendChart(name, data);
     } catch (err) {
-      alert('Failed to load trend: ' + err.message);
+      showToast('Failed to load trend: ' + err.message, 'error');
     }
   }
 
@@ -194,9 +243,11 @@
     if (!confirm('Remove this URL and all its audit history?')) return;
     try {
       await removeUrl(id);
+      showToast('URL removed', 'success');
       await renderAll();
+      await renderStats();
     } catch (err) {
-      alert('Failed to remove: ' + err.message);
+      showToast('Failed to remove: ' + err.message, 'error');
     }
   }
 
@@ -225,7 +276,7 @@
 
     trendChart = new Chart(trendCanvas, {
       type: 'line',
-      data: { labels, datasets },
+      data: { labels: labels, datasets: datasets },
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -260,9 +311,11 @@
       await addUrl(url, name);
       urlInput.value = '';
       nameInput.value = '';
+      showToast('URL added', 'success');
       await renderAll();
+      await renderStats();
     } catch (err) {
-      alert('Failed to add URL: ' + err.message);
+      showToast('Failed to add URL: ' + err.message, 'error');
     }
   });
 
@@ -276,7 +329,11 @@
 
   // Initial render
   renderAll();
+  renderStats();
 
-  // Auto-refresh every 30 seconds
-  refreshTimer = setInterval(renderAll, REFRESH_INTERVAL);
+  // Auto-refresh every 60 seconds
+  refreshTimer = setInterval(() => {
+    renderAll();
+    renderStats();
+  }, REFRESH_INTERVAL);
 })();

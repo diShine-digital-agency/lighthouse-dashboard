@@ -3,36 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Self-hosted Lighthouse audit dashboard with scheduled monitoring and trend charts">
   <title>Lighthouse Dashboard</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
     <div class="header-inner">
       <h1>Lighthouse Dashboard</h1>
-      <span class="byline">by <a href="https://dishine.it" target="_blank">diShine</a></span>
+      <div class="header-actions">
+        <button id="theme-toggle" class="btn-icon" title="Toggle dark mode" aria-label="Toggle dark mode">◐</button>
+      </div>
     </div>
   </header>
 
   <main>
+    <section class="stats-bar" id="stats-bar" aria-label="Dashboard statistics">
+      <div class="stat"><span class="stat-value" id="stat-urls">—</span><span class="stat-label">URLs</span></div>
+      <div class="stat"><span class="stat-value" id="stat-audits">—</span><span class="stat-label">Audits</span></div>
+      <div class="stat"><span class="stat-value" id="stat-perf">—</span><span class="stat-label">Avg Perf</span></div>
+      <div class="stat"><span class="stat-value" id="stat-a11y">—</span><span class="stat-label">Avg A11y</span></div>
+    </section>
+
     <section class="add-url">
-      <form id="add-form">
-        <input type="url" id="input-url" placeholder="https://example.com" required>
-        <input type="text" id="input-name" placeholder="Site name (optional)">
+      <form id="add-form" aria-label="Add URL to monitoring">
+        <input type="url" id="input-url" placeholder="https://example.com" required aria-label="URL to monitor">
+        <input type="text" id="input-name" placeholder="Site name (optional)" aria-label="Friendly site name">
         <button type="submit">Add URL</button>
       </form>
     </section>
 
-    <section id="cards" class="cards-grid"></section>
+    <section id="cards" class="cards-grid" aria-label="Monitored URLs"></section>
 
-    <section id="trend-section" class="trend-section" style="display:none;">
+    <section id="trend-section" class="trend-section" style="display:none;" aria-label="Score trend chart">
       <div class="trend-header">
         <h2 id="trend-title">Trend</h2>
-        <button id="trend-close" class="btn-close" title="Close">&times;</button>
+        <button id="trend-close" class="btn-close" title="Close" aria-label="Close trend chart">&times;</button>
       </div>
       <canvas id="trend-chart"></canvas>
     </section>
   </main>
+
+  <footer>
+    <div class="footer-inner">
+      <span>Built by <a href="https://dishine.it" target="_blank" rel="noopener">diShine</a></span>
+      <span class="footer-sep">·</span>
+      <a href="https://github.com/diShine-digital-agency/lighthouse-dashboard" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
   <script src="app.js"></script>
