@@ -2,7 +2,7 @@
 
 A guide to setting up and using the Lighthouse Dashboard for website performance monitoring.
 
--—
+---
 
 ## 1. What this tool does
 
@@ -15,7 +15,7 @@ Lighthouse Dashboard is a self-hosted web application that monitors website perf
 
 Each category is scored from 0 to 100. The dashboard stores every audit result and shows how scores change over time.
 
--—
+---
 
 ## 2. Installation
 
@@ -48,7 +48,7 @@ npx lighthouse-dashboard --version
 
 You should see a version number printed.
 
--—
+---
 
 ## 3. Adding your first website
 
@@ -74,7 +74,7 @@ To see all the websites you have added:
 npx lighthouse-dashboard list
 ```
 
--—
+---
 
 ## 4. Starting the dashboard
 
@@ -100,7 +100,7 @@ If port 3000 is already in use, pick a different one:
 npx lighthouse-dashboard start --port 8080
 ```
 
--—
+---
 
 ## 5. Understanding Lighthouse scores
 
@@ -122,7 +122,7 @@ Each score uses a color-coded system:
 
 - **SEO**: Ensures your pages have proper meta tags, descriptive link text, valid robots.txt, and are mobile-friendly.
 
--—
+---
 
 ## 6. Reading trend charts
 
@@ -134,7 +134,7 @@ The chart displays four lines (one per category) over the last 30 days. This hel
 - Verify that fixes actually improved scores
 - Track gradual improvements or degradations
 
--—
+---
 
 ## 7. Scheduling automated audits
 
@@ -152,7 +152,7 @@ The first audit runs immediately when the server starts, then repeats on the con
 
 Audit results appear in the dashboard automatically — no need to refresh.
 
--—
+---
 
 ## 8. Running one-off audits
 
@@ -170,7 +170,7 @@ npx lighthouse-dashboard run https://your-website.com
 
 This prints the results directly in your terminal without saving them to the database.
 
--—
+---
 
 ## 9. Using the API
 
@@ -220,7 +220,7 @@ curl http://localhost:3000/api/stats
 curl http://localhost:3000/api/health
 ```
 
--—
+---
 
 ## 10. Self-hosting on a server
 
@@ -235,7 +235,7 @@ pm2 is a process manager that keeps your dashboard running even after reboots.
 npm install -g pm2
 
 # Start the dashboard
-pm2 start npx --name lighthouse-dashboard — lighthouse-dashboard start --port 3000
+pm2 start npx --name lighthouse-dashboard -- lighthouse-dashboard start --port 3000
 
 # Save the process list
 pm2 save
@@ -288,7 +288,7 @@ server {
 }
 ```
 
--—
+---
 
 ## 11. Troubleshooting
 
@@ -324,7 +324,7 @@ npx lighthouse-dashboard start --port 8080
 
 This can happen if multiple processes try to write simultaneously. The dashboard uses WAL mode to minimize this, but avoid running multiple instances against the same database file.
 
--—
+---
 
 ## 12. FAQ
 
@@ -346,6 +346,6 @@ A: The SQLite database file can be opened with any SQLite client. You can also u
 **Q: Does it support mobile audits?**
 A: Lighthouse simulates a mobile device by default. The scores reflect mobile performance.
 
--—
+---
 
 Built by [diShine](https://dishine.it)

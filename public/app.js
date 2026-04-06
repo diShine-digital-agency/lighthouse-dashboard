@@ -258,16 +258,16 @@
     trendSection.style.display = 'block';
     trendSection.scrollIntoView({ behavior: 'smooth' });
 
-    const labels = data.map(function (d) {
-      var dt = new Date(d.created_at + 'Z');
+    const labels = data.map((d) => {
+      const dt = new Date(d.created_at + 'Z');
       return dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     });
 
-    var datasets = [
-      { label: 'Performance', data: data.map(function (d) { return d.performance; }), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)' },
-      { label: 'Accessibility', data: data.map(function (d) { return d.accessibility; }), borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.1)' },
-      { label: 'Best Practices', data: data.map(function (d) { return d.best_practices; }), borderColor: '#059669', backgroundColor: 'rgba(5,150,105,0.1)' },
-      { label: 'SEO', data: data.map(function (d) { return d.seo; }), borderColor: '#d97706', backgroundColor: 'rgba(217,119,6,0.1)' },
+    const datasets = [
+      { label: 'Performance', data: data.map((d) => d.performance), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)' },
+      { label: 'Accessibility', data: data.map((d) => d.accessibility), borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.1)' },
+      { label: 'Best Practices', data: data.map((d) => d.best_practices), borderColor: '#059669', backgroundColor: 'rgba(5,150,105,0.1)' },
+      { label: 'SEO', data: data.map((d) => d.seo), borderColor: '#d97706', backgroundColor: 'rgba(217,119,6,0.1)' },
     ];
 
     if (trendChart) {
@@ -298,12 +298,12 @@
 
   /* ── Init ───────────────────────────────────────── */
 
-  addForm.addEventListener('submit', async function (e) {
+  addForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    var urlInput = $('#input-url');
-    var nameInput = $('#input-name');
-    var url = urlInput.value.trim();
-    var name = nameInput.value.trim();
+    const urlInput = $('#input-url');
+    const nameInput = $('#input-name');
+    const url = urlInput.value.trim();
+    const name = nameInput.value.trim();
 
     if (!url) return;
 
@@ -319,7 +319,7 @@
     }
   });
 
-  trendClose.addEventListener('click', function () {
+  trendClose.addEventListener('click', () => {
     trendSection.style.display = 'none';
     if (trendChart) {
       trendChart.destroy();
@@ -332,7 +332,7 @@
   renderStats();
 
   // Auto-refresh every 60 seconds
-  refreshTimer = setInterval(function () {
+  refreshTimer = setInterval(() => {
     renderAll();
     renderStats();
   }, REFRESH_INTERVAL);
