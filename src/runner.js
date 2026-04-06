@@ -5,22 +5,22 @@ export async function runAudit(url) {
     lighthouse = mod.default || mod;
   } catch {
     throw new Error(
-      'Lighthouse is not installed. Run: npm install -g lighthouse'
+      'Lighthouse is not installed. Run: npm install lighthouse'
     );
   }
 
   const result = await lighthouse(url, {
     output: 'json',
     onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'],
-    chromeFlags: ['--headless', '--no-sandbox'],
+    chromeFlags: ['--headless', '--no-sandbox', '--disable-gpu'],
   });
 
   const { lhr } = result;
   const cat = lhr.categories;
-  const audits = lhr.audits;
+  const a = lhr.audits;
 
   const score = (c) => Math.round((cat[c]?.score ?? 0) * 100);
-  const metric = (key) => audits[key]?.numericValue ?? null;
+  const metric = (key) => a[key]?.numericValue ?? null;
 
   return {
     performance: score('performance'),

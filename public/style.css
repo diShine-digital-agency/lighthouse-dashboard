@@ -14,6 +14,16 @@
   --shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
+[data-theme="dark"] {
+  --bg: #111827;
+  --card-bg: #1f2937;
+  --header-bg: #0f172a;
+  --text: #f3f4f6;
+  --text-dim: #9ca3af;
+  --border: #374151;
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
@@ -21,6 +31,9 @@ body {
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 header {
@@ -33,7 +46,8 @@ header {
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
 }
 
@@ -42,20 +56,65 @@ header h1 {
   font-weight: 700;
 }
 
-.byline {
-  font-size: 0.85rem;
-  opacity: 0.6;
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.byline a {
-  color: inherit;
-  text-decoration: underline;
+.btn-icon {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: var(--header-fg);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.15s;
 }
+
+.btn-icon:hover { background: rgba(255,255,255,0.1); }
 
 main {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  flex: 1;
+  width: 100%;
+}
+
+/* Stats bar */
+.stats-bar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.stat {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem 1.5rem;
+  flex: 1;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* Add URL form */
@@ -76,6 +135,8 @@ main {
   font-size: 0.95rem;
   outline: none;
   transition: border-color 0.2s;
+  background: var(--card-bg);
+  color: var(--text);
 }
 
 #add-form input:focus {
@@ -98,6 +159,7 @@ main {
 }
 
 #add-form button:hover { opacity: 0.85; }
+#add-form button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Cards grid */
 .cards-grid {
@@ -151,9 +213,11 @@ main {
   font-size: 0.75rem;
   cursor: pointer;
   transition: background 0.15s;
+  color: var(--text);
 }
 
 .card-actions button:hover { background: var(--bg); }
+.card-actions button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .card-actions .btn-delete:hover { background: #fef2f2; color: var(--red); border-color: var(--red); }
 
 /* Score gauges */
@@ -235,6 +299,7 @@ main {
 }
 
 .btn-close:hover { color: var(--text); }
+.btn-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 #trend-chart {
   width: 100%;
@@ -247,8 +312,65 @@ main {
   pointer-events: none;
 }
 
+/* Toast notifications */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(120%);
+  background: var(--header-bg);
+  color: var(--header-fg);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  max-width: 90vw;
+  text-align: center;
+}
+
+.toast.visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast.toast-error {
+  background: var(--red);
+}
+
+.toast.toast-success {
+  background: #059669;
+}
+
+/* Footer */
+footer {
+  background: var(--header-bg);
+  color: var(--header-fg);
+  padding: 1rem 2rem;
+  margin-top: auto;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+.footer-inner a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.footer-sep {
+  margin: 0 0.5rem;
+}
+
 @media (max-width: 640px) {
   main { padding: 1rem; }
   .scores { grid-template-columns: repeat(2, 1fr); }
-  .header-inner { flex-direction: column; gap: 0.25rem; }
+  .header-inner { flex-direction: column; gap: 0.25rem; align-items: flex-start; }
+  .stats-bar { gap: 0.5rem; }
+  .stat { padding: 0.75rem 1rem; min-width: 80px; }
 }

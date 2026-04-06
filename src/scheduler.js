@@ -1,6 +1,7 @@
 export class Scheduler {
   #timer = null;
   #running = false;
+  #busy = false;
 
   constructor() {}
 
@@ -8,12 +9,22 @@ export class Scheduler {
     if (this.#running) this.stop();
     this.#running = true;
 
-    // Run immediately
-    Promise.resolve().then(() => callback()).catch(() => {});
+    const run = async () => {
+      if (this.#busy) return;
+      this.#busy = true;
+      try {
+        await callback();
+      } catch (err) {
+        console.error('[scheduler] Task failed:', err.message);
+      } finally {
+        this.#busy = false;
+      }
+    };
 
-    this.#timer = setInterval(() => {
-      callback().catch(() => {});
-    }, intervalMs);
+    // Run immediately
+    Promise.resolve().then(run);
+
+    this.#timer = setInterval(run, intervalMs);
   }
 
   stop() {
