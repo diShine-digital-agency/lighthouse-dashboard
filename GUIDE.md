@@ -1,21 +1,21 @@
-# Lighthouse Dashboard -- User Guide
+# Lighthouse Dashboard — User Guide
 
-A complete guide to setting up and using the Lighthouse Dashboard for website performance monitoring.
+A guide to setting up and using the Lighthouse Dashboard for website performance monitoring.
 
----
+-—
 
-## 1. What is this tool?
+## 1. What this tool does
 
-Lighthouse Dashboard is a self-hosted web application that monitors the performance of your websites over time. It uses Google Lighthouse (the same technology behind Chrome DevTools audits) to score your pages on four categories:
+Lighthouse Dashboard is a self-hosted web application that monitors website performance over time. It uses Google Lighthouse (the same engine behind Chrome DevTools audits) to score pages on four categories:
 
-- **Performance** -- How fast your page loads and becomes interactive
-- **Accessibility** -- How usable your site is for people with disabilities
-- **Best Practices** -- Whether your site follows modern web standards
-- **SEO** -- How well search engines can crawl and index your content
+- **Performance** — how fast the page loads and becomes interactive
+- **Accessibility** — how usable the site is for people with disabilities
+- **Best Practices** — whether the site follows modern web standards
+- **SEO** — how well search engines can crawl and index the content
 
-Each category is scored from 0 to 100. The dashboard stores every audit result and shows you how your scores change over time.
+Each category is scored from 0 to 100. The dashboard stores every audit result and shows how scores change over time.
 
----
+-—
 
 ## 2. Installation
 
@@ -23,8 +23,8 @@ Each category is scored from 0 to 100. The dashboard stores every audit result a
 
 You need two things installed on your computer:
 
-1. **Node.js** (version 18 or higher) -- Download from https://nodejs.org
-2. **Google Chrome** or **Chromium** -- Lighthouse needs a browser to run audits
+1. **Node.js** (version 18 or higher) — download from https://nodejs.org
+2. **Google Chrome** or **Chromium** — Lighthouse needs a browser to run audits
 
 ### Install the dashboard
 
@@ -34,10 +34,10 @@ Open your terminal (Terminal on Mac, Command Prompt or PowerShell on Windows) an
 npm install @dishine/lighthouse-dashboard
 ```
 
-Then install Lighthouse globally:
+Then install Lighthouse:
 
 ```bash
-npm install -g lighthouse
+npm install lighthouse
 ```
 
 To verify everything is installed:
@@ -48,7 +48,7 @@ npx lighthouse-dashboard --version
 
 You should see a version number printed.
 
----
+-—
 
 ## 3. Adding your first website
 
@@ -74,7 +74,7 @@ To see all the websites you have added:
 npx lighthouse-dashboard list
 ```
 
----
+-—
 
 ## 4. Starting the dashboard
 
@@ -100,7 +100,7 @@ If port 3000 is already in use, pick a different one:
 npx lighthouse-dashboard start --port 8080
 ```
 
----
+-—
 
 ## 5. Understanding Lighthouse scores
 
@@ -108,9 +108,9 @@ Each score uses a color-coded system:
 
 | Score | Color | Meaning |
 |-------|-------|---------|
-| 90-100 | Green | Good -- your site performs well in this area |
-| 50-89 | Orange | Needs improvement -- there are things to fix |
-| 0-49 | Red | Poor -- significant issues need attention |
+| 90-100 | Green | Good — your site performs well in this area |
+| 50-89 | Orange | Needs improvement — there are things to fix |
+| 0-49 | Red | Poor — significant issues need attention |
 
 ### What each category means
 
@@ -122,7 +122,7 @@ Each score uses a color-coded system:
 
 - **SEO**: Ensures your pages have proper meta tags, descriptive link text, valid robots.txt, and are mobile-friendly.
 
----
+-—
 
 ## 6. Reading trend charts
 
@@ -134,7 +134,7 @@ The chart displays four lines (one per category) over the last 30 days. This hel
 - Verify that fixes actually improved scores
 - Track gradual improvements or degradations
 
----
+-—
 
 ## 7. Scheduling automated audits
 
@@ -150,9 +150,9 @@ npx lighthouse-dashboard start --interval 3600
 
 The first audit runs immediately when the server starts, then repeats on the configured interval.
 
-Audit results appear in the dashboard automatically -- no need to refresh.
+Audit results appear in the dashboard automatically — no need to refresh.
 
----
+-—
 
 ## 8. Running one-off audits
 
@@ -170,7 +170,7 @@ npx lighthouse-dashboard run https://your-website.com
 
 This prints the results directly in your terminal without saving them to the database.
 
----
+-—
 
 ## 9. Using the API
 
@@ -220,7 +220,7 @@ curl http://localhost:3000/api/stats
 curl http://localhost:3000/api/health
 ```
 
----
+-—
 
 ## 10. Self-hosting on a server
 
@@ -235,7 +235,7 @@ pm2 is a process manager that keeps your dashboard running even after reboots.
 npm install -g pm2
 
 # Start the dashboard
-pm2 start npx --name lighthouse-dashboard -- lighthouse-dashboard start --port 3000
+pm2 start npx --name lighthouse-dashboard — lighthouse-dashboard start --port 3000
 
 # Save the process list
 pm2 save
@@ -288,16 +288,16 @@ server {
 }
 ```
 
----
+-—
 
 ## 11. Troubleshooting
 
 ### "Lighthouse is not installed"
 
-Make sure you installed Lighthouse globally:
+Make sure Lighthouse is installed:
 
 ```bash
-npm install -g lighthouse
+npm install lighthouse
 ```
 
 ### "Chrome not found" or headless browser errors
@@ -324,7 +324,7 @@ npx lighthouse-dashboard start --port 8080
 
 This can happen if multiple processes try to write simultaneously. The dashboard uses WAL mode to minimize this, but avoid running multiple instances against the same database file.
 
----
+-—
 
 ## 12. FAQ
 
@@ -346,6 +346,6 @@ A: The SQLite database file can be opened with any SQLite client. You can also u
 **Q: Does it support mobile audits?**
 A: Lighthouse simulates a mobile device by default. The scores reflect mobile performance.
 
----
+-—
 
-Built by [diShine](https://dishine.it) -- Creative Tech Agency
+Built by [diShine](https://dishine.it)
