@@ -1,10 +1,18 @@
-# lighthouse-dashboard
+# lighthouse-dashboard, a Self-hosted Lighthouse audit dashboard with scheduled monitoring and trend charts.
 
-Self-hosted Lighthouse audit dashboard with scheduled monitoring and trend charts.
+<p align="center">
+  <img src="images/lighthouse_dashboard_04_trend_analysis.webp" alt="Lighthouse dashboard trend analysis" width="65%">
+</p>
 
-Runs [Google Lighthouse](https://developer.chrome.com/docs/lighthouse/) audits on a schedule, stores results in a local SQLite database, and serves a web dashboard with score cards and trend charts.
+Stop running manual [Lighthouse](https://developer.chrome.com/docs/lighthouse/) checks. This self-hosted dashboard automates your web performance monitoring: it runs scheduled audits in the background, logs the results in a local SQLite database, and serves a clean web UI with historical trend charts to help you catch performance regressions before your users do.
+Runs  audits on a schedule, stores results in a local SQLite database, and serves a web dashboard with score cards and trend charts.
 
 Built by [diShine](https://dishine.it).
+
+<p align="center">
+  <img src="images/lighthouse_dashboard_05_ops_workflow.webp" alt="Lighthouse Dashboard workflow" width="49%">
+  <img src="images/lighthouse_dashboard_02_scorecard_closeup.webp" alt="Lighthouse Dashboard scorecard" width="49%">
+</p>
 
 ---
 
