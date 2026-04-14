@@ -37,7 +37,10 @@ npx lighthouse-dashboard start
 
 - **Scheduled audits** — runs automatically at a configurable interval (default: 24 hours).
 - **Score tracking** — stores performance, accessibility, best practices, and SEO scores in SQLite.
+- **Performance budgets** — set minimum score thresholds per URL; the dashboard flags scores that fall below the budget.
 - **Trend charts** — shows how scores change over time using Chart.js.
+- **Audit export** — download audit history as JSON or CSV.
+- **Webhook notifications** — receive a POST request with audit results and budget failures after each audit.
 - **Web dashboard** — responsive UI with dark mode support, served at `localhost`.
 - **REST API** — every dashboard action is available over HTTP.
 - **CLI** — manage URLs and run one-off audits from the terminal.
@@ -72,9 +75,11 @@ npx lighthouse-dashboard start
 |--------|----------|-------------|
 | GET | `/api/urls` | List all URLs with latest audit data |
 | POST | `/api/urls` | Add a URL (`{ url, name }`) |
+| PATCH | `/api/urls/:id` | Update name, budgets, or webhook URL |
 | DELETE | `/api/urls/:id` | Remove a URL and its audits |
 | GET | `/api/urls/:id/audits` | Get audit history (`?limit=50`) |
 | GET | `/api/urls/:id/trend` | Get trend data (`?days=30`) |
+| GET | `/api/urls/:id/export` | Export audits as JSON or CSV (`?format=csv`) |
 | POST | `/api/urls/:id/run` | Trigger an audit |
 | GET | `/api/stats` | Dashboard statistics |
 | GET | `/api/health` | Health check |
@@ -109,6 +114,70 @@ db.saveAudit(1, {
   seo: result.seo,
   ...result.metrics,
 });
+```
+
+---
+
+## Performance budgets
+
+Set minimum score thresholds per URL. When an audit score falls below its budget, the dashboard highlights it with a pulsing red indicator.
+
+```bash
+# Set budgets via API
+curl -X PATCH http://localhost:3000/api/urls/1 \
+  -H "Content-Type: application/json" \
+  -d '{"budget_performance": 90, "budget_accessibility": 85, "budget_seo": 80}'
+```
+
+You can also set budgets from the dashboard UI by clicking the **Budget** button on any URL card.
+
+---
+
+## Webhooks
+
+Configure a webhook URL to receive a POST request after each audit completes. The payload includes the audit results and any budget failures.
+
+```bash
+# Set a webhook URL
+curl -X PATCH http://localhost:3000/api/urls/1 \
+  -H "Content-Type: application/json" \
+  -d '{"webhook_url": "https://hooks.slack.com/services/..."}'
+```
+
+Webhook payload:
+
+```json
+{
+  "event": "audit.completed",
+  "url": "https://example.com",
+  "name": "Example",
+  "audit": { "performance": 92, "accessibility": 88, "best_practices": 95, "seo": 100, "..." },
+  "budgetFailures": [
+    { "category": "Accessibility", "score": 88, "budget": 90 }
+  ]
+}
+```
+
+To remove a webhook, set it to `null`:
+
+```bash
+curl -X PATCH http://localhost:3000/api/urls/1 \
+  -H "Content-Type: application/json" \
+  -d '{"webhook_url": null}'
+```
+
+---
+
+## Exporting data
+
+Download audit history as JSON or CSV:
+
+```bash
+# JSON export (default)
+curl http://localhost:3000/api/urls/1/export
+
+# CSV export
+curl http://localhost:3000/api/urls/1/export?format=csv -o audits.csv
 ```
 
 ---

@@ -220,9 +220,144 @@ curl http://localhost:3000/api/stats
 curl http://localhost:3000/api/health
 ```
 
+### Update a URL (budgets, webhook, name)
+
+```bash
+curl -X PATCH http://localhost:3000/api/urls/1 \
+  -H "Content-Type: application/json" \
+  -d '{"budget_performance": 90, "webhook_url": "https://hooks.example.com/audit"}'
+```
+
+### Export audit data
+
+```bash
+# JSON format
+curl http://localhost:3000/api/urls/1/export
+
+# CSV format
+curl http://localhost:3000/api/urls/1/export?format=csv -o audits.csv
+```
+
 ---
 
-## 10. Self-hosting on a server
+## 10. Performance budgets
+
+Performance budgets let you define minimum acceptable scores for each category. When an audit score drops below the budget, the dashboard highlights it visually.
+
+### Setting budgets from the dashboard
+
+Click the **Budget** button on any website card. Enter four comma-separated numbers (0-100) for Performance, Accessibility, Best Practices, and SEO:
+
+```
+90,85,90,80
+```
+
+Leave the input empty and press OK to clear all budgets.
+
+### Setting budgets via API
+
+```bash
+curl -X PATCH http://localhost:3000/api/urls/1 \
+  -H "Content-Type: application/json" \
+  -d '{"budget_performance": 90, "budget_accessibility": 85, "budget_best_practices": 90, "budget_seo": 80}'
+```
+
+To clear a budget, set it to `null`:
+
+```bash
+curl -X PATCH http://localhost:3000/api/urls/1 \
+  -H "Content-Type: application/json" \
+  -d '{"budget_performance": null}'
+```
+
+### How budgets are displayed
+
+- Score gauges show the budget threshold beneath the label (e.g., "Perf ≥90").
+- Scores that fail their budget display a pulsing red shadow to draw attention.
+
+---
+
+## 11. Webhook notifications
+
+Webhooks let you receive audit results automatically. After each audit completes (whether scheduled or manual), the dashboard sends a POST request to your configured webhook URL.
+
+### Setting up a webhook
+
+```bash
+curl -X PATCH http://localhost:3000/api/urls/1 \
+  -H "Content-Type: application/json" \
+  -d '{"webhook_url": "https://hooks.slack.com/services/..."}'
+```
+
+### Webhook payload
+
+```json
+{
+  "event": "audit.completed",
+  "url": "https://example.com",
+  "name": "Example",
+  "audit": {
+    "id": 42,
+    "performance": 92,
+    "accessibility": 88,
+    "best_practices": 95,
+    "seo": 100,
+    "fcp": 1200,
+    "lcp": 2500,
+    "cls": 0.05,
+    "tbt": 150,
+    "si": 3000,
+    "tti": 3500,
+    "created_at": "2026-04-14 12:00:00"
+  },
+  "budgetFailures": [
+    { "category": "Accessibility", "score": 88, "budget": 90 }
+  ]
+}
+```
+
+The `budgetFailures` field is `null` when all scores meet their budgets or no budgets are set.
+
+### Removing a webhook
+
+```bash
+curl -X PATCH http://localhost:3000/api/urls/1 \
+  -H "Content-Type: application/json" \
+  -d '{"webhook_url": null}'
+```
+
+---
+
+## 12. Exporting data
+
+You can export audit history in two formats:
+
+### JSON export
+
+```bash
+curl http://localhost:3000/api/urls/1/export
+```
+
+Returns the URL metadata and all audit records as a JSON object.
+
+### CSV export
+
+```bash
+curl http://localhost:3000/api/urls/1/export?format=csv -o audits.csv
+```
+
+The CSV file includes a header row and all stored metrics. You can open it in Excel, Google Sheets, or any spreadsheet tool.
+
+### Limiting results
+
+```bash
+# Export only the last 10 audits
+curl http://localhost:3000/api/urls/1/export?limit=10
+```
+
+---
+
+## 13. Self-hosting on a server
 
 To run the dashboard on a remote server so your team can access it:
 
@@ -290,7 +425,7 @@ server {
 
 ---
 
-## 11. Troubleshooting
+## 14. Troubleshooting
 
 ### "Lighthouse is not installed"
 
@@ -326,7 +461,7 @@ This can happen if multiple processes try to write simultaneously. The dashboard
 
 ---
 
-## 12. FAQ
+## 15. FAQ
 
 **Q: How long does an audit take?**
 A: Typically 30-60 seconds per URL, depending on page complexity and server speed.
