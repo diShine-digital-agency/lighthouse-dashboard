@@ -9,6 +9,19 @@ import { createRouter } from './api.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+async function fireWebhook(webhookUrl, payload) {
+  try {
+    await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(10000),
+    });
+  } catch (err) {
+    console.error(`[webhook] Failed to deliver to ${webhookUrl}: ${err.message}`);
+  }
+}
+
 export function createServer(options = {}) {
   const {
     port = 3000,
@@ -32,7 +45,7 @@ export function createServer(options = {}) {
     for (const entry of urls) {
       try {
         const result = await runAudit(entry.url);
-        db.saveAudit(entry.id, {
+        const saved = db.saveAudit(entry.id, {
           performance: result.performance,
           accessibility: result.accessibility,
           bestPractices: result.bestPractices,
@@ -45,6 +58,28 @@ export function createServer(options = {}) {
           tti: result.metrics.tti,
         });
         console.log(`[audit] ${entry.url} — Performance: ${result.performance}`);
+
+        // Fire webhook if configured
+        if (entry.webhook_url) {
+          const failures = [];
+          for (const [key, label, scoreKey] of [
+            ['budget_performance', 'Performance', 'performance'],
+            ['budget_accessibility', 'Accessibility', 'accessibility'],
+            ['budget_best_practices', 'Best Practices', 'best_practices'],
+            ['budget_seo', 'SEO', 'seo'],
+          ]) {
+            if (entry[key] != null && saved[scoreKey] != null && saved[scoreKey] < entry[key]) {
+              failures.push({ category: label, score: saved[scoreKey], budget: entry[key] });
+            }
+          }
+          fireWebhook(entry.webhook_url, {
+            event: 'audit.completed',
+            url: entry.url,
+            name: entry.name,
+            audit: saved,
+            budgetFailures: failures.length > 0 ? failures : null,
+          });
+        }
       } catch (err) {
         console.error(`[audit] Failed for ${entry.url}: ${err.message}`);
       }

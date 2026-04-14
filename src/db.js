@@ -20,6 +20,7 @@ export class DB {
         budget_accessibility INTEGER,
         budget_best_practices INTEGER,
         budget_seo INTEGER,
+        webhook_url TEXT,
         created_at TEXT DEFAULT (datetime('now'))
       );
 
@@ -45,9 +46,9 @@ export class DB {
 
     // Migrate: add budget columns to existing databases
     const cols = this.#db.prepare("PRAGMA table_info(urls)").all().map(c => c.name);
-    for (const col of ['budget_performance', 'budget_accessibility', 'budget_best_practices', 'budget_seo']) {
+    for (const col of ['budget_performance', 'budget_accessibility', 'budget_best_practices', 'budget_seo', 'webhook_url']) {
       if (!cols.includes(col)) {
-        this.#db.exec(`ALTER TABLE urls ADD COLUMN ${col} INTEGER`);
+        this.#db.exec(`ALTER TABLE urls ADD COLUMN ${col} ${col === 'webhook_url' ? 'TEXT' : 'INTEGER'}`);
       }
     }
   }
@@ -75,7 +76,7 @@ export class DB {
   }
 
   updateUrl(id, fields) {
-    const allowed = ['name', 'budget_performance', 'budget_accessibility', 'budget_best_practices', 'budget_seo'];
+    const allowed = ['name', 'budget_performance', 'budget_accessibility', 'budget_best_practices', 'budget_seo', 'webhook_url'];
     const sets = [];
     const values = [];
     for (const key of allowed) {

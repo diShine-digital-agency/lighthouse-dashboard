@@ -231,6 +231,20 @@ r = await request('/api/urls/1', { method: 'PATCH', body: JSON.stringify({ budge
 assert(r.status === 200, 'PATCH clears budget with null');
 assert(r.body.budget_performance === null, 'PATCH cleared budget is null');
 
+// PATCH /api/urls/:id — set webhook_url
+r = await request('/api/urls/1', { method: 'PATCH', body: JSON.stringify({ webhook_url: 'https://hooks.example.com/test' }) });
+assert(r.status === 200, 'PATCH sets webhook_url');
+assert(r.body.webhook_url === 'https://hooks.example.com/test', 'PATCH webhook_url value correct');
+
+// PATCH /api/urls/:id — invalid webhook_url
+r = await request('/api/urls/1', { method: 'PATCH', body: JSON.stringify({ webhook_url: 'not-a-url' }) });
+assert(r.status === 400, 'PATCH with invalid webhook_url returns 400');
+
+// PATCH /api/urls/:id — clear webhook_url
+r = await request('/api/urls/1', { method: 'PATCH', body: JSON.stringify({ webhook_url: null }) });
+assert(r.status === 200, 'PATCH clears webhook_url with null');
+assert(r.body.webhook_url === null, 'PATCH cleared webhook_url is null');
+
 // DELETE /api/urls/:id
 r = await request('/api/urls/1', { method: 'DELETE' });
 assert(r.status === 200, 'DELETE /api/urls/1 returns 200');

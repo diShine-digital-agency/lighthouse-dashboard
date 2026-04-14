@@ -9,6 +9,36 @@ function isValidUrl(str) {
   }
 }
 
+async function fireWebhook(webhookUrl, payload) {
+  try {
+    await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(10000),
+    });
+  } catch (err) {
+    console.error(`[webhook] Failed to deliver to ${webhookUrl}: ${err.message}`);
+  }
+}
+
+function checkBudgets(urlEntry, audit) {
+  const checks = [
+    { key: 'budget_performance', score: audit.performance, label: 'Performance' },
+    { key: 'budget_accessibility', score: audit.accessibility, label: 'Accessibility' },
+    { key: 'budget_best_practices', score: audit.best_practices, label: 'Best Practices' },
+    { key: 'budget_seo', score: audit.seo, label: 'SEO' },
+  ];
+  const failures = [];
+  for (const { key, score, label } of checks) {
+    const budget = urlEntry[key];
+    if (budget != null && score != null && score < budget) {
+      failures.push({ category: label, score, budget });
+    }
+  }
+  return failures;
+}
+
 export function createRouter(db, runAuditFn) {
   const router = Router();
   const runningAudits = new Set();
@@ -64,11 +94,17 @@ export function createRouter(db, runAuditFn) {
       const urlEntry = db.getUrl(id);
       if (!urlEntry) return res.status(404).json({ error: 'URL not found' });
 
-      const { name, budget_performance, budget_accessibility, budget_best_practices, budget_seo } = req.body;
+      const { name, budget_performance, budget_accessibility, budget_best_practices, budget_seo, webhook_url } = req.body;
       const fields = {};
       if (name !== undefined) {
         if (name !== null && name.length > 100) return res.status(400).json({ error: 'Name must be 100 characters or fewer' });
         fields.name = name;
+      }
+      if (webhook_url !== undefined) {
+        if (webhook_url !== null && !isValidUrl(webhook_url)) {
+          return res.status(400).json({ error: 'webhook_url must be a valid http:// or https:// URL, or null to clear' });
+        }
+        fields.webhook_url = webhook_url;
       }
       for (const [key, val] of Object.entries({ budget_performance, budget_accessibility, budget_best_practices, budget_seo })) {
         if (val !== undefined) {
@@ -169,6 +205,19 @@ export function createRouter(db, runAuditFn) {
           si: result.metrics.si,
           tti: result.metrics.tti,
         });
+
+        // Fire webhook if configured (non-blocking)
+        if (urlEntry.webhook_url) {
+          const budgetFailures = checkBudgets(urlEntry, saved);
+          fireWebhook(urlEntry.webhook_url, {
+            event: 'audit.completed',
+            url: urlEntry.url,
+            name: urlEntry.name,
+            audit: saved,
+            budgetFailures: budgetFailures.length > 0 ? budgetFailures : null,
+          });
+        }
+
         res.json(saved);
       } finally {
         runningAudits.delete(id);
