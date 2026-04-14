@@ -29,6 +29,7 @@ src/
   db.js             SQLite database layer
   runner.js         Lighthouse audit runner
   scheduler.js      Interval-based task scheduler
+  notify.js         Webhook delivery and budget checking
 public/
   index.html        Dashboard HTML shell
   app.js            Frontend application

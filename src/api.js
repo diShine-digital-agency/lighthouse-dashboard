@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { fireWebhook, checkBudgets } from './notify.js';
 
 function isValidUrl(str) {
   try {
@@ -7,36 +8,6 @@ function isValidUrl(str) {
   } catch {
     return false;
   }
-}
-
-async function fireWebhook(webhookUrl, payload) {
-  try {
-    await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(10000),
-    });
-  } catch (err) {
-    console.error(`[webhook] Failed to deliver to ${webhookUrl}: ${err.message}`);
-  }
-}
-
-function checkBudgets(urlEntry, audit) {
-  const checks = [
-    { key: 'budget_performance', score: audit.performance, label: 'Performance' },
-    { key: 'budget_accessibility', score: audit.accessibility, label: 'Accessibility' },
-    { key: 'budget_best_practices', score: audit.best_practices, label: 'Best Practices' },
-    { key: 'budget_seo', score: audit.seo, label: 'SEO' },
-  ];
-  const failures = [];
-  for (const { key, score, label } of checks) {
-    const budget = urlEntry[key];
-    if (budget != null && score != null && score < budget) {
-      failures.push({ category: label, score, budget });
-    }
-  }
-  return failures;
 }
 
 export function createRouter(db, runAuditFn) {
