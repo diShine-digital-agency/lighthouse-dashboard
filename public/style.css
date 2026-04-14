@@ -256,6 +256,16 @@ main {
   letter-spacing: 0.03em;
 }
 
+.gauge-circle.gauge-fail {
+  animation: pulse-fail 1.5s ease-in-out infinite;
+  box-shadow: 0 0 0 3px rgba(255, 78, 66, 0.25);
+}
+
+@keyframes pulse-fail {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(255, 78, 66, 0.25); }
+  50% { box-shadow: 0 0 0 6px rgba(255, 78, 66, 0.15); }
+}
+
 .card-time {
   margin-top: 1rem;
   font-size: 0.75rem;

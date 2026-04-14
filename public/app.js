@@ -96,6 +96,13 @@
     return api('/api/urls/' + id, { method: 'DELETE' });
   }
 
+  async function updateUrlBudgets(id, budgets) {
+    return api('/api/urls/' + id, {
+      method: 'PATCH',
+      body: JSON.stringify(budgets),
+    });
+  }
+
   async function triggerAudit(id) {
     return api('/api/urls/' + id + '/run', { method: 'POST' });
   }
@@ -124,14 +131,16 @@
 
   /* ── Render score gauge ────────────────────────── */
 
-  function gaugeHTML(label, score) {
+  function gaugeHTML(label, score, budget) {
     const display = score != null ? score : '—';
     const color = score != null ? scoreColor(score) : 'var(--border)';
+    const budgetClass = (budget != null && score != null && score < budget) ? ' gauge-fail' : '';
+    const budgetAttr = budget != null ? ' data-budget="' + budget + '"' : '';
     return '<div class="gauge">' +
-      '<div class="gauge-circle" style="border-color: ' + color + '; color: ' + color + '" role="meter" aria-valuenow="' + (score ?? 0) + '" aria-valuemin="0" aria-valuemax="100" aria-label="' + label + ' score">' +
+      '<div class="gauge-circle' + budgetClass + '" style="border-color: ' + color + '; color: ' + color + '" role="meter" aria-valuenow="' + (score ?? 0) + '" aria-valuemin="0" aria-valuemax="100" aria-label="' + label + ' score"' + budgetAttr + '>' +
       display +
       '</div>' +
-      '<span class="gauge-label">' + label + '</span>' +
+      '<span class="gauge-label">' + label + (budget != null ? ' ≥' + budget : '') + '</span>' +
       '</div>';
   }
 
@@ -152,21 +161,23 @@
         '<div class="card-actions">' +
           '<button class="btn-run" title="Run audit now" data-id="' + entry.id + '" aria-label="Run audit for ' + escapeAttr(name) + '">Run</button>' +
           '<button class="btn-trend" title="View trend" data-id="' + entry.id + '" data-name="' + escapeAttr(name) + '" aria-label="View trend for ' + escapeAttr(name) + '">Trend</button>' +
+          '<button class="btn-budget" title="Set budgets" data-id="' + entry.id + '" aria-label="Set budgets for ' + escapeAttr(name) + '">Budget</button>' +
           '<button class="btn-delete" title="Remove" data-id="' + entry.id + '" aria-label="Remove ' + escapeAttr(name) + '">Del</button>' +
         '</div>' +
       '</div>' +
       (a
         ? '<div class="scores">' +
-            gaugeHTML('Perf', a.performance) +
-            gaugeHTML('A11y', a.accessibility) +
-            gaugeHTML('BP', a.best_practices) +
-            gaugeHTML('SEO', a.seo) +
+            gaugeHTML('Perf', a.performance, entry.budget_performance) +
+            gaugeHTML('A11y', a.accessibility, entry.budget_accessibility) +
+            gaugeHTML('BP', a.best_practices, entry.budget_best_practices) +
+            gaugeHTML('SEO', a.seo, entry.budget_seo) +
           '</div>' +
           '<div class="card-time">Last audit: ' + formatTime(a.created_at) + '</div>'
         : '<div class="no-data">No audit data yet. Click "Run" to start.</div>');
 
     card.querySelector('.btn-run').addEventListener('click', handleRun);
     card.querySelector('.btn-trend').addEventListener('click', handleTrend);
+    card.querySelector('.btn-budget').addEventListener('click', handleBudget);
     card.querySelector('.btn-delete').addEventListener('click', handleDelete);
 
     return card;
@@ -248,6 +259,42 @@
       await renderStats();
     } catch (err) {
       showToast('Failed to remove: ' + err.message, 'error');
+    }
+  }
+
+  async function handleBudget(e) {
+    const id = e.currentTarget.dataset.id;
+    const input = prompt(
+      'Set performance budgets (comma-separated: perf,a11y,bp,seo).\n' +
+      'Use 0-100 for each, or leave blank to clear all.\n' +
+      'Example: 90,85,90,80'
+    );
+    if (input === null) return; // cancelled
+
+    const trimmed = input.trim();
+    let budgets;
+    if (trimmed === '') {
+      budgets = { budget_performance: null, budget_accessibility: null, budget_best_practices: null, budget_seo: null };
+    } else {
+      const parts = trimmed.split(',').map((s) => s.trim());
+      if (parts.length !== 4 || parts.some((p) => p !== '' && (isNaN(Number(p)) || Number(p) < 0 || Number(p) > 100))) {
+        showToast('Invalid format. Use 4 numbers 0-100 separated by commas.', 'error');
+        return;
+      }
+      budgets = {
+        budget_performance: parts[0] !== '' ? Number(parts[0]) : null,
+        budget_accessibility: parts[1] !== '' ? Number(parts[1]) : null,
+        budget_best_practices: parts[2] !== '' ? Number(parts[2]) : null,
+        budget_seo: parts[3] !== '' ? Number(parts[3]) : null,
+      };
+    }
+
+    try {
+      await updateUrlBudgets(id, budgets);
+      showToast('Budgets updated', 'success');
+      await renderAll();
+    } catch (err) {
+      showToast('Failed to set budgets: ' + err.message, 'error');
     }
   }
 

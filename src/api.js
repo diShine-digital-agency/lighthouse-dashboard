@@ -56,6 +56,36 @@ export function createRouter(db, runAuditFn) {
     }
   });
 
+  // Update URL (name and/or budgets)
+  router.patch('/api/urls/:id', (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
+      const urlEntry = db.getUrl(id);
+      if (!urlEntry) return res.status(404).json({ error: 'URL not found' });
+
+      const { name, budget_performance, budget_accessibility, budget_best_practices, budget_seo } = req.body;
+      const fields = {};
+      if (name !== undefined) {
+        if (name !== null && name.length > 100) return res.status(400).json({ error: 'Name must be 100 characters or fewer' });
+        fields.name = name;
+      }
+      for (const [key, val] of Object.entries({ budget_performance, budget_accessibility, budget_best_practices, budget_seo })) {
+        if (val !== undefined) {
+          if (val !== null && (typeof val !== 'number' || val < 0 || val > 100)) {
+            return res.status(400).json({ error: `${key} must be a number between 0 and 100, or null to clear` });
+          }
+          fields[key] = val;
+        }
+      }
+
+      const updated = db.updateUrl(id, fields);
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // Get audits for URL
   router.get('/api/urls/:id/audits', (req, res) => {
     try {
@@ -64,6 +94,36 @@ export function createRouter(db, runAuditFn) {
       const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 500);
       const audits = db.getAudits(id, limit);
       res.json(audits);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Export audits as CSV or JSON
+  router.get('/api/urls/:id/export', (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
+      const urlEntry = db.getUrl(id);
+      if (!urlEntry) return res.status(404).json({ error: 'URL not found' });
+      const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 500, 1), 5000);
+      const audits = db.getAudits(id, limit);
+      const format = (req.query.format || 'json').toLowerCase();
+
+      if (format === 'csv') {
+        const header = 'id,url,performance,accessibility,best_practices,seo,fcp,lcp,cls,tbt,si,tti,created_at';
+        const rows = audits.map((a) =>
+          [a.id, `"${urlEntry.url}"`, a.performance, a.accessibility, a.best_practices, a.seo,
+           a.fcp, a.lcp, a.cls, a.tbt, a.si, a.tti, a.created_at].join(',')
+        );
+        const csv = [header, ...rows].join('\n');
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="audits-${id}.csv"`);
+        return res.send(csv);
+      }
+
+      res.setHeader('Content-Disposition', `attachment; filename="audits-${id}.json"`);
+      res.json({ url: urlEntry, audits });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
