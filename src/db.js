@@ -16,6 +16,11 @@ export class DB {
         id    INTEGER PRIMARY KEY AUTOINCREMENT,
         url   TEXT NOT NULL UNIQUE,
         name  TEXT,
+        budget_performance INTEGER,
+        budget_accessibility INTEGER,
+        budget_best_practices INTEGER,
+        budget_seo INTEGER,
+        webhook_url TEXT,
         created_at TEXT DEFAULT (datetime('now'))
       );
 
@@ -38,6 +43,14 @@ export class DB {
       CREATE INDEX IF NOT EXISTS idx_audits_url_id ON audits(url_id);
       CREATE INDEX IF NOT EXISTS idx_audits_created ON audits(created_at);
     `);
+
+    // Migrate: add budget columns to existing databases
+    const cols = this.#db.prepare("PRAGMA table_info(urls)").all().map(c => c.name);
+    for (const col of ['budget_performance', 'budget_accessibility', 'budget_best_practices', 'budget_seo', 'webhook_url']) {
+      if (!cols.includes(col)) {
+        this.#db.exec(`ALTER TABLE urls ADD COLUMN ${col} ${col === 'webhook_url' ? 'TEXT' : 'INTEGER'}`);
+      }
+    }
   }
 
   /* ── URL CRUD ─────────────────────────────────── */
@@ -60,6 +73,22 @@ export class DB {
 
   removeUrl(id) {
     this.#db.prepare('DELETE FROM urls WHERE id = ?').run(id);
+  }
+
+  updateUrl(id, fields) {
+    const allowed = ['name', 'budget_performance', 'budget_accessibility', 'budget_best_practices', 'budget_seo', 'webhook_url'];
+    const sets = [];
+    const values = [];
+    for (const key of allowed) {
+      if (key in fields) {
+        sets.push(`${key} = ?`);
+        values.push(fields[key] ?? null);
+      }
+    }
+    if (sets.length === 0) return this.getUrl(id);
+    values.push(id);
+    this.#db.prepare(`UPDATE urls SET ${sets.join(', ')} WHERE id = ?`).run(...values);
+    return this.getUrl(id);
   }
 
   /* ── Audit CRUD ───────────────────────────────── */

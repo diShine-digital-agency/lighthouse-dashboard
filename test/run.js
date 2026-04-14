@@ -65,6 +65,16 @@ assert(db.getUrl(999) === null, 'getUrl returns null for missing id');
 db.addUrl('https://empty.com', 'Empty');
 assert(db.getLatestAudit(2) === null, 'getLatestAudit returns null when no audits');
 
+// updateUrl tests
+const updated = db.updateUrl(2, { name: 'Updated', budget_performance: 90, budget_seo: 80 });
+assert(updated.name === 'Updated', 'updateUrl updates name');
+assert(updated.budget_performance === 90, 'updateUrl sets budget_performance');
+assert(updated.budget_seo === 80, 'updateUrl sets budget_seo');
+assert(updated.budget_accessibility === null, 'updateUrl leaves unset budgets as null');
+
+const cleared = db.updateUrl(2, { budget_performance: null });
+assert(cleared.budget_performance === null, 'updateUrl clears budget with null');
+
 db.removeUrl(1);
 assert(db.listUrls().length === 1, 'removeUrl works');
 db.removeUrl(2);
@@ -183,6 +193,57 @@ assert(r.body.length >= 1, 'GET /api/urls/1/audits returns audit data');
 // GET /api/urls/:id/trend
 r = await request('/api/urls/1/trend?days=7');
 assert(r.status === 200, 'GET /api/urls/1/trend returns 200');
+
+// GET /api/urls/:id/export — JSON format
+r = await request('/api/urls/1/export');
+assert(r.status === 200, 'GET /api/urls/1/export returns 200');
+assert(r.body.url && r.body.audits, 'GET /api/urls/1/export returns url and audits');
+
+// GET /api/urls/:id/export — CSV format
+{
+  const csvRes = await fetch(base + '/api/urls/1/export?format=csv');
+  assert(csvRes.status === 200, 'GET /api/urls/1/export?format=csv returns 200');
+  const csvText = await csvRes.text();
+  assert(csvText.startsWith('id,url,'), 'CSV export starts with correct header');
+  assert(csvText.split('\n').length >= 2, 'CSV export contains header and data rows');
+}
+
+// GET /api/urls/:id/export — not found
+r = await request('/api/urls/999/export');
+assert(r.status === 404, 'GET /api/urls/999/export returns 404 for missing URL');
+
+// PATCH /api/urls/:id — set budgets
+r = await request('/api/urls/1', { method: 'PATCH', body: JSON.stringify({ budget_performance: 90, budget_seo: 80 }) });
+assert(r.status === 200, 'PATCH /api/urls/1 returns 200');
+assert(r.body.budget_performance === 90, 'PATCH sets budget_performance');
+assert(r.body.budget_seo === 80, 'PATCH sets budget_seo');
+
+// PATCH /api/urls/:id — invalid budget value
+r = await request('/api/urls/1', { method: 'PATCH', body: JSON.stringify({ budget_performance: 150 }) });
+assert(r.status === 400, 'PATCH with budget > 100 returns 400');
+
+// PATCH /api/urls/:id — not found
+r = await request('/api/urls/999', { method: 'PATCH', body: JSON.stringify({ budget_performance: 90 }) });
+assert(r.status === 404, 'PATCH /api/urls/999 returns 404');
+
+// PATCH /api/urls/:id — clear budget
+r = await request('/api/urls/1', { method: 'PATCH', body: JSON.stringify({ budget_performance: null }) });
+assert(r.status === 200, 'PATCH clears budget with null');
+assert(r.body.budget_performance === null, 'PATCH cleared budget is null');
+
+// PATCH /api/urls/:id — set webhook_url
+r = await request('/api/urls/1', { method: 'PATCH', body: JSON.stringify({ webhook_url: 'https://hooks.example.com/test' }) });
+assert(r.status === 200, 'PATCH sets webhook_url');
+assert(r.body.webhook_url === 'https://hooks.example.com/test', 'PATCH webhook_url value correct');
+
+// PATCH /api/urls/:id — invalid webhook_url
+r = await request('/api/urls/1', { method: 'PATCH', body: JSON.stringify({ webhook_url: 'not-a-url' }) });
+assert(r.status === 400, 'PATCH with invalid webhook_url returns 400');
+
+// PATCH /api/urls/:id — clear webhook_url
+r = await request('/api/urls/1', { method: 'PATCH', body: JSON.stringify({ webhook_url: null }) });
+assert(r.status === 200, 'PATCH clears webhook_url with null');
+assert(r.body.webhook_url === null, 'PATCH cleared webhook_url is null');
 
 // DELETE /api/urls/:id
 r = await request('/api/urls/1', { method: 'DELETE' });

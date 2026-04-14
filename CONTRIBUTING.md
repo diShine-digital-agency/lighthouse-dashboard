@@ -16,7 +16,7 @@ npm install
 npm test
 ```
 
-Tests cover the database layer, scheduler, and API endpoints. All tests must pass before submitting a pull request.
+Tests cover the database layer, scheduler, and API endpoints (including export, budgets, and webhooks). All tests must pass before submitting a pull request.
 
 ## Project structure
 
@@ -29,6 +29,7 @@ src/
   db.js             SQLite database layer
   runner.js         Lighthouse audit runner
   scheduler.js      Interval-based task scheduler
+  notify.js         Webhook delivery and budget checking
 public/
   index.html        Dashboard HTML shell
   app.js            Frontend application

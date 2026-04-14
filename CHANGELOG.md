@@ -5,6 +5,25 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] — 2026-04-14
+
+### Added
+
+- **Performance budgets** — set minimum score thresholds per URL for Performance, Accessibility, Best Practices, and SEO. Scores that fall below the budget are visually flagged with a pulsing red indicator on the dashboard.
+- **Audit export** — new `GET /api/urls/:id/export` endpoint supports both JSON and CSV formats (`?format=csv`). CSV files include a header row and all stored metrics.
+- **Webhook notifications** — configure a webhook URL per monitored site (`PATCH /api/urls/:id` with `webhook_url`). After each audit completes, a POST request is sent with the audit results and any budget failures.
+- **Update URL** — new `PATCH /api/urls/:id` endpoint to update a URL's name, performance budgets, and webhook URL without removing and re-adding it.
+- **Budget button** in the dashboard UI — click "Budget" on any card to set score thresholds via a prompt dialog.
+- **Budget labels** on score gauges — when a budget is set, the gauge label shows the threshold (e.g., "Perf ≥90").
+- **Database migration** — budget and webhook columns are automatically added to existing databases on startup.
+- 23 new tests covering export, budgets, webhooks, and the PATCH endpoint (62 total, up from 39).
+
+### Changed
+
+- Dashboard cards now include a "Budget" action button alongside Run, Trend, and Del.
+- Gauge circles that fail their budget threshold display a pulsing red shadow animation.
+- The `urls` table schema now includes `budget_performance`, `budget_accessibility`, `budget_best_practices`, `budget_seo`, and `webhook_url` columns.
+
 ## [1.1.0] — 2026-04-06
 
 ### Added

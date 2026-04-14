@@ -5,6 +5,7 @@ import { DB } from './db.js';
 import { runAudit } from './runner.js';
 import { Scheduler } from './scheduler.js';
 import { createRouter } from './api.js';
+import { fireWebhook, checkBudgets } from './notify.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -32,7 +33,7 @@ export function createServer(options = {}) {
     for (const entry of urls) {
       try {
         const result = await runAudit(entry.url);
-        db.saveAudit(entry.id, {
+        const saved = db.saveAudit(entry.id, {
           performance: result.performance,
           accessibility: result.accessibility,
           bestPractices: result.bestPractices,
@@ -45,6 +46,18 @@ export function createServer(options = {}) {
           tti: result.metrics.tti,
         });
         console.log(`[audit] ${entry.url} — Performance: ${result.performance}`);
+
+        // Fire webhook if configured
+        if (entry.webhook_url) {
+          const budgetFailures = checkBudgets(entry, saved);
+          fireWebhook(entry.webhook_url, {
+            event: 'audit.completed',
+            url: entry.url,
+            name: entry.name,
+            audit: saved,
+            budgetFailures: budgetFailures.length > 0 ? budgetFailures : null,
+          });
+        }
       } catch (err) {
         console.error(`[audit] Failed for ${entry.url}: ${err.message}`);
       }
