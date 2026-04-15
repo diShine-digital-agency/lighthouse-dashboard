@@ -1,13 +1,26 @@
-# lighthouse-dashboard, a Self-hosted Lighthouse audit dashboard with scheduled monitoring and trend charts.
+# ⚡️ Lighthouse Dashboard: self-hosted dashboard to automate your web performance monitoring
+
+<div align="center">
+  
+[![diShine Logo](https://dishine.it/favicon.ico)](https://dishine.it/)
+
+***Transform. Automate. Shine!***
+
+[![Website](https://img.shields.io/badge/Website-dishine.it-blue)](https://dishine.it/blog/lighthouse-dashboard-self-hosted-performance-monitoring/)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-diShine-blue)](https://linkedin.com/company/100682596)
+[![Location](https://img.shields.io/badge/Location-Milan%2C%20Italy-green)]()
+[![License: CC0](https://img.shields.io/badge/License-CC0%201.0-lightgrey)](LICENSE)
 
 <p align="center">
-  <img src="images/lighthouse_dashboard_04_trend_analysis.webp" alt="Lighthouse dashboard trend analysis" width="65%">
+  <img src="images/lighthouse_dashboard_04_trend_analysis.webp" alt="Lighthouse dashboard trend analysis" width="85%">
 </p>
 
-Stop running manual [Lighthouse](https://developer.chrome.com/docs/lighthouse/) checks. This self-hosted dashboard automates your web performance monitoring: it runs scheduled audits in the background, logs the results in a local SQLite database, and serves a clean web UI with historical trend charts to help you catch performance regressions before your users do.
-Runs  audits on a schedule, stores results in a local SQLite database, and serves a web dashboard with score cards and trend charts.
+***Stop running manual [Lighthouse](https://developer.chrome.com/docs/lighthouse/) checks. This self-hosted dashboard automates your web performance monitoring: it runs scheduled audits in the background, logs the results in a local SQLite database, and serves a clean web UI with historical trend charts to help you catch performance regressions before your users do. 
+Runs  audits on a schedule, stores results in a local SQLite database, and serves a web dashboard with score cards and trend charts.***
 
-Built by [diShine](https://dishine.it).
+Built by [diShine Digital Agency](https://dishine.it). Read more on the [diShine blog](https://dishine.it/blog/lighthouse-dashboard-self-hosted-performance-monitoring/).
+
+</div>
 
 <p align="center">
   <img src="images/lighthouse_dashboard_05_ops_workflow.webp" alt="Lighthouse Dashboard workflow" width="49%">
