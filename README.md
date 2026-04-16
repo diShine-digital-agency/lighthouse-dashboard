@@ -48,15 +48,15 @@ npx lighthouse-dashboard start
 
 ## Features
 
-- **Scheduled audits** — runs automatically at a configurable interval (default: 24 hours).
-- **Score tracking** — stores performance, accessibility, best practices, and SEO scores in SQLite.
-- **Performance budgets** — set minimum score thresholds per URL; the dashboard flags scores that fall below the budget.
-- **Trend charts** — shows how scores change over time using Chart.js.
-- **Audit export** — download audit history as JSON or CSV.
-- **Webhook notifications** — receive a POST request with audit results and budget failures after each audit.
-- **Web dashboard** — responsive UI with dark mode support, served at `localhost`.
-- **REST API** — every dashboard action is available over HTTP.
-- **CLI** — manage URLs and run one-off audits from the terminal.
+- **Scheduled audits**: runs automatically at a configurable interval (default: 24 hours).
+- **Score tracking**: stores performance, accessibility, best practices, and SEO scores in SQLite.
+- **Performance budgets**: set minimum score thresholds per URL; the dashboard flags scores that fall below the budget.
+- **Trend charts**: shows how scores change over time using Chart.js.
+- **Audit export**: download audit history as JSON or CSV.
+- **Webhook notifications**: receive a POST request with audit results and budget failures after each audit.
+- **Web dashboard**: responsive UI with dark mode support, served at `localhost`.
+- **REST API**: every dashboard action is available over HTTP.
+- **CLI**: manage URLs and run one-off audits from the terminal.
 
 ---
 
@@ -223,7 +223,7 @@ Restart=on-failure
 WantedBy=multi-user.target
 ```
 
-The SQLite database is a single file — back it up by copying it.
+The SQLite database is a single file. Back it up by copying it.
 
 ---
 
@@ -245,7 +245,7 @@ See [SECURITY.md](SECURITY.md).
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT - see [LICENSE](LICENSE) for details.
 
 ---
 
